@@ -128,6 +128,26 @@ async def execute_code(request: CodeExecutionRequest):
     except Exception as e:
         logger.error(f"Error in /execute: {str(e)}")
         return JSONResponse(content={"error": f"❌ Terjadi kesalahan: {str(e)}"}, status_code=500)
+    
+
+# Endpoint untuk analisis teks menggunakan Gemini AI
+@app.post("/analyze")
+async def analyze_text(request: PromptRequest):
+    try:
+        model = genai.GenerativeModel("gemini-pro")
+        custom_prompt = f"Kamu adalah seorang analis data profesional. Tolong analisa data berikut dan berikan reasoning yang mendalam: {request.prompt}"
+        response = model.generate_content(custom_prompt)
+
+        if hasattr(response, "text"):
+            response_text = clean_code(response.text.strip())
+            return JSONResponse(content={"analysis": response_text})
+
+        return JSONResponse(content={"error": "❌ Tidak ada jawaban dari model."}, status_code=500)
+
+    except Exception as e:
+        logger.error(f"Error in /analyze: {str(e)}")
+        return JSONResponse(content={"error": f"❌ Terjadi kesalahan: {str(e)}"}, status_code=500)
+
 @app.get("/")
 async def root():
     return {"message": "API is running!"}
